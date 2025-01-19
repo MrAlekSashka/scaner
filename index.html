@@ -4,48 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <!-- Подключение библиотеки -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script type="module">
+        import { initQRScanner } from '@telegram-apps/sdk';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const qrScanner = initQRScanner();
+
+            document.getElementById('scanBtn').addEventListener('click', () => {
+                qrScanner.open({
+                    text: 'Сканируйте QR-код',
+                    capture({ data }) {
+                        // Захватываем только QR-коды с ссылками на Telegram
+                        return data.startsWith('https://t.me');
+                    }
+                }).then((qr) => {
+                    if (qr) {
+                        alert(`Отсканированный QR-код: ${qr}`);
+                    } else {
+                        alert('QR-код не был отсканирован или не подходит.');
+                    }
+                }).catch((error) => {
+                    alert('Ошибка при сканировании QR-кода.');
+                    console.error(error);
+                });
+            });
+        });
+    </script>
 </head>
 <body>
-    <h1>Сканируйте QR-код</h1>
-    <div id="reader" style="width: 300px; height: 300px; margin: 0 auto;"></div>
-    <div id="status"></div>
-
-    <script>
-        // Проверка, загрузилась ли библиотека
-        if (typeof Html5Qrcode === "undefined") {
-            console.error("Ошибка: библиотека Html5Qrcode не загружена.");
-        } else {
-            console.log("Библиотека Html5Qrcode загружена успешно!");
-
-            // Инициализация сканера
-            const html5QrCode = new Html5Qrcode("reader");
-            const statusDiv = document.getElementById("status");
-
-            // Успешное сканирование
-            function onScanSuccess(decodedText, decodedResult) {
-                console.log(`QR-код отсканирован: ${decodedText}`);
-                alert(`QR-код отсканирован: ${decodedText}`);
-                statusDiv.textContent = `Сканирование успешно: ${decodedText}`;
-            }
-
-            // Ошибка сканирования
-            function onScanError(error) {
-                console.warn("Ошибка сканирования:", error);
-            }
-
-            // Запуск камеры и сканера
-            html5QrCode.start(
-                { facingMode: "environment" }, // Использование задней камеры
-                { fps: 10, qrbox: { width: 250, height: 250 } }, // Настройки камеры
-                onScanSuccess,
-                onScanError
-            ).catch(err => {
-                console.error("Ошибка запуска камеры:", err);
-                statusDiv.textContent = "Не удалось запустить камеру. Проверьте настройки и разрешения браузера.";
-            });
-        }
-    </script>
+    <h1>Сканирование QR-кода</h1>
+    <button id="scanBtn">Открыть сканер QR-кода</button>
 </body>
 </html>
