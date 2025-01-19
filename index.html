@@ -30,13 +30,14 @@
                 console.warn("Ошибка сканирования:", error);
             }
 
+            // Запуск сканера
             html5QrCode.start(
                 { facingMode: "environment" }, // Используем заднюю камеру
                 { fps: 10, qrbox: { width: 250, height: 250 } }, // Настройки камеры
                 onScanSuccess,
                 onScanError
             ).catch(err => {
-                alert('Ошибка при запуске камеры.');
+                alert('Ошибка при запуске камеры. Возможно, камера не доступна.');
                 console.error(err);
             });
         });
