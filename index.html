@@ -4,49 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <!-- Подключаем библиотеку для сканирования QR-кодов -->
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <!-- Подключение библиотеки -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
     <h1>Сканируйте QR-код</h1>
-    <!-- Элемент для отображения видеопотока и сканирования -->
-    <div id="reader" style="width: 300px;"></div>
+    <div id="reader" style="width: 300px; height: 300px; margin: 0 auto;"></div>
+    <div id="status"></div>
+
     <script>
-        // Функция обработки успешного сканирования QR-кода
-        function onScanSuccess(decodedText) {
-            // Отправляем результат на сервер через GET-запрос
-            fetch(`/send_result?data=${encodeURIComponent(decodedText)}`);
-            // Выводим уведомление пользователю с результатом
-            alert(`QR-код отсканирован: ${decodedText}`);
-        }
+        // Проверка, загрузилась ли библиотека
+        if (typeof Html5Qrcode === "undefined") {
+            console.error("Ошибка: библиотека Html5Qrcode не загружена.");
+        } else {
+            console.log("Библиотека Html5Qrcode загружена успешно!");
 
-        // Создаем объект для работы с библиотекой Html5QrCode
-        const html5QrCode = new Html5Qrcode("reader");
+            // Инициализация сканера
+            const html5QrCode = new Html5Qrcode("reader");
+            const statusDiv = document.getElementById("status");
 
-        // Инициализируем видеопоток и начинаем сканирование
-        html5QrCode.start(
-            // Указываем, какую камеру использовать. "environment" — задняя камера.
-            { facingMode: "environment" }, 
-            // Настройки сканирования: частота кадров и размер области сканирования
-            { fps: 10, qrbox: 250 },
-            // Коллбэк для успешного сканирования
-            onScanSuccess
-        )
-        .catch(err => {
-            // Если возникла ошибка, выводим её в консоль и уведомляем пользователя
-            console.error("Ошибка запуска камеры:", err);
-            alert("Не удалось получить доступ к камере. Проверьте настройки браузера.");
-        });
+            // Успешное сканирование
+            function onScanSuccess(decodedText, decodedResult) {
+                console.log(`QR-код отсканирован: ${decodedText}`);
+                alert(`QR-код отсканирован: ${decodedText}`);
+                statusDiv.textContent = `Сканирование успешно: ${decodedText}`;
+            }
 
-        // Проверяем права на использование камеры перед запуском (дополнительно)
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                console.log("Доступ к камере предоставлен.");
-            })
-            .catch((err) => {
-                console.error("Ошибка доступа к камере:", err);
-                alert("Проверьте разрешения на использование камеры.");
+            // Ошибка сканирования
+            function onScanError(error) {
+                console.warn("Ошибка сканирования:", error);
+            }
+
+            // Запуск камеры и сканера
+            html5QrCode.start(
+                { facingMode: "environment" }, // Использование задней камеры
+                { fps: 10, qrbox: { width: 250, height: 250 } }, // Настройки камеры
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                console.error("Ошибка запуска камеры:", err);
+                statusDiv.textContent = "Не удалось запустить камеру. Проверьте настройки и разрешения браузера.";
             });
+        }
     </script>
 </body>
 </html>
